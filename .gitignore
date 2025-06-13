@@ -9,8 +9,8 @@ data/
 *.log
 
 # Ignore secret files
-secrets/*
-!secrets/.gitkeep   # Allow folder to exist, if needed
+# secrets/*
+# !secrets/.gitkeep   # Allow folder to exist, if needed
 
 # Optional: ignore IDE/editor noise
 .vscode/
