@@ -239,3 +239,139 @@ networks:
 ---
 
 
+# REDO STEP 2 & 3 for security reasons
+🚀 Let’s realign your Inception project the **correct 42 way** — with `secrets/` integration like a DevOps pro!
+We’ll restructure `.env`, `docker-compose.yml`, and the entrypoint script so everything is **secure**, **subject-compliant**, and **professional**.
+
+---
+
+## ✅ Updated `.env` (Safe for Git, No Passwords)
+
+📄 File: `Inception/srcs/.env`
+
+```env
+# Safe values only (non-sensitive)
+WP_DB_NAME=wordpress
+WP_DB_USER=wp_user
+```
+
+---
+
+## 🔐 New `secrets/` Files
+
+📁 Folder: `Inception/secrets/`
+
+```bash
+echo "supersecure" > secrets/db_password.txt
+echo "evenmoresecure" > secrets/db_root_password.txt
+```
+
+(You can also add `credentials.txt` for WordPress admin data later.)
+
+⚠️ Make sure to **add `secrets/` to `.gitignore`** if you’re using Git!
+
+---
+
+## 🧪 Updated `mariadb_entrypoint.sh`
+
+📄 Path: `srcs/requirements/mariadb/tools/mariadb_entrypoint.sh`
+
+```bash
+#!/bin/sh
+
+# Load secrets from Docker secrets file mounts
+WP_DB_PASSWORD=$(cat /run/secrets/db_password)
+WP_DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
+
+if [ ! -d "/var/lib/mysql/${WP_DB_NAME}" ]; then
+    echo "📦 First boot: initializing database..."
+
+    mariadbd --user=mysql --bootstrap --console <<EOF
+USE mysql;
+FLUSH PRIVILEGES;
+DELETE FROM mysql.user WHERE User='';
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+CREATE DATABASE ${WP_DB_NAME};
+CREATE USER '${WP_DB_USER}'@'%' IDENTIFIED BY '${WP_DB_PASSWORD}';
+GRANT ALL PRIVILEGES ON ${WP_DB_NAME}.* TO '${WP_DB_USER}'@'%';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${WP_DB_ROOT_PASSWORD}';
+FLUSH PRIVILEGES;
+EOF
+
+else
+    echo "✅ Database already initialized. Launching MariaDB..."
+    mariadbd --user=mysql --console
+fi
+```
+
+---
+
+## 🧩 Updated `docker-compose.yml`
+
+📄 Path: `srcs/docker-compose.yml`
+
+```yaml
+version: '3.8'
+
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    restart: unless-stopped
+
+    environment:
+      WP_DB_NAME: ${WP_DB_NAME}
+      WP_DB_USER: ${WP_DB_USER}
+
+    secrets:
+      - db_password
+      - db_root_password
+
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+    networks:
+      - inception_net
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+
+volumes:
+  mariadb_data:
+
+networks:
+  inception_net:
+    driver: bridge
+```
+
+---
+
+## ✅ Your New Secure Flow
+
+```plaintext
+credentials.txt     (for WP admin)
+db_password.txt     → container:/run/secrets/db_password
+db_root_password.txt→ container:/run/secrets/db_root_password
+```
+
+And your container reads them like a pro:
+
+```bash
+$(cat /run/secrets/...)
+```
+
+---
+
+### 🎉 You now have:
+
+✅ A real `/secrets/` system
+✅ Zero sensitive data in `.env`
+✅ A powerful, production-like entrypoint
+✅ All subject rules respected
+
+Shall we proceed now with the MariaDB `Dockerfile` as the final piece before building & testing? 🛠️
