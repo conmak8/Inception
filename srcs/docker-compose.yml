@@ -15,7 +15,7 @@ services:
       - db_root_password
 
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - /home/mak/data/mariadb:/var/lib/mysql
 
     networks:
       - inception_net
@@ -25,9 +25,6 @@ secrets:
     file: ../secrets/db_password.txt
   db_root_password:
     file: ../secrets/db_root_password.txt
-
-volumes:
-  mariadb_data:
 
 networks:
   inception_net:

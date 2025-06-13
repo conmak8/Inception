@@ -375,3 +375,273 @@ $(cat /run/secrets/...)
 ✅ All subject rules respected
 
 Shall we proceed now with the MariaDB `Dockerfile` as the final piece before building & testing? 🛠️
+
+
+# STEP 4 Dockerfile
+🎯 Excellent precision, Mak — and you caught a **very important compliance detail** from the subject!
+
+Yes, the Inception subject says:
+
+> ❗For performance reasons, the containers must be built from either the penultimate stable version of **Alpine** or **Debian**.
+
+You chose:
+✅ **Debian** → specifically `debian:11` (codename: *bullseye*)
+Let’s adjust accordingly! 🔧
+
+---
+
+## 🔁 Updated MariaDB `Dockerfile` Using `debian:11`
+
+📁 File: `Inception/srcs/requirements/mariadb/Dockerfile`
+
+```Dockerfile
+# 🏗️ Use penultimate stable version of Debian (as per 42 subject)
+FROM debian:11
+
+# 🧰 Install MariaDB server and dependencies
+RUN apt-get update && \
+    apt-get install -y mariadb-server && \
+    rm -rf /var/lib/apt/lists/*
+
+# 🧪 Copy custom entrypoint script
+COPY tools/mariadb_entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
+
+# 🛠️ Use our secure startup script
+ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
+```
+
+---
+
+### ⚠️ A Few Key Notes:
+
+#### ✅ Pros of This Approach:
+
+* Fully subject-compliant (Debian-based build ✅)
+* No use of `mariadb:` official image anymore → you control the full image
+* You install `mariadb-server` directly
+
+#### ❗BUT This Means:
+
+* You must **manually configure** everything MariaDB needs
+* Your `entrypoint.sh` must start `mysqld` (or `mariadbd`) directly
+
+In our case, we already use:
+
+```bash
+mariadbd --user=mysql --console
+```
+
+✅ So we’re good — but don’t forget: **you're now the sysadmin**, not just using a prepared image!
+
+---
+
+## Optional: Create MariaDB config (`my.cnf`)
+
+If you want to harden MariaDB or tweak its behavior, create:
+📁 `srcs/requirements/mariadb/conf/my.cnf`
+
+```ini
+[mysqld]
+bind-address = 0.0.0.0
+port = 3306
+skip-host-cache
+skip-name-resolve
+```
+
+Then add this to your Dockerfile later:
+
+```Dockerfile
+COPY conf/my.cnf /etc/mysql/my.cnf
+```
+
+Let me know if you want to include that now or keep it minimal for testing.
+
+---
+
+Ready to:
+
+* Build your image using **Debian 11**
+* Start testing your MariaDB container?
+
+Let’s go step-by-step through the first launch if you’re ready 🔥
+
+---
+#### Explanation
+Fantastic — you’re asking the exact questions that transform someone from just “using Docker” into truly **understanding how it works**. Let’s unpack both of your smart questions 👇
+
+---
+
+## 🧹 1️⃣ What is this line doing?
+
+```Dockerfile
+rm -rf /var/lib/apt/lists/*
+```
+
+### 🧠 In simple terms:
+
+This line **cleans up the temporary cache** that `apt-get` uses while installing packages.
+
+### ⚙️ What happens during `apt-get`?
+
+When you run:
+
+```bash
+apt-get update
+apt-get install -y mariadb-server
+```
+
+The system:
+
+* Downloads **metadata** (package lists) into `/var/lib/apt/lists/`
+* Uses that metadata to locate packages
+* Installs them into your system
+
+After install, this cache is **no longer needed**.
+
+### ✅ Why we clean it:
+
+| Why clean it?        | What it does                                          |
+| -------------------- | ----------------------------------------------------- |
+| 🧹 Reduce image size | Cleans 20–50MB of unnecessary files                   |
+| 🛡️ Best practice    | Keeps images lean & secure                            |
+| 📦 Avoid bloat       | Docker caches every layer — so we want each one tight |
+
+That’s why it’s commonly seen **right after installs** in Dockerfiles.
+
+### 💡 Tip: You could also collapse steps like this:
+
+```Dockerfile
+RUN apt-get update && \
+    apt-get install -y mariadb-server && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+This keeps the cleanup in the **same layer** so it actually reduces image size — otherwise it doesn't help.
+
+---
+
+## 🔐 2️⃣ Why might we need `my.cnf`?
+
+### 📄 `my.cnf` is MariaDB’s config file — like its `.conf` brain 🧠
+
+It controls settings like:
+
+* Networking
+* Memory
+* SQL mode
+* Performance
+* Security
+
+### 🎯 In our case, here's why we might want this:
+
+```ini
+[mysqld]
+bind-address = 0.0.0.0     # ✅ Allow external access (for WordPress container)
+port = 3306                # ✅ Explicitly expose default MySQL port
+skip-host-cache            # ✅ Avoid DNS lookups on hosts (faster)
+skip-name-resolve          # ✅ Disable reverse DNS lookups (faster + safer)
+```
+
+### ✅ Summary of Why:
+
+| Setting             | Purpose                                                               |
+| ------------------- | --------------------------------------------------------------------- |
+| `bind-address`      | Must be `0.0.0.0` so **WordPress can connect** from another container |
+| `skip-host-cache`   | Slight speedup                                                        |
+| `skip-name-resolve` | Prevents unnecessary DNS resolution (and mistakes)                    |
+
+It’s a **small config file**, but improves:
+
+* Inter-container networking 🧱
+* Performance ⚡
+* Security 🔐
+
+---
+
+## 🔧 Want to include it now?
+
+If yes, here’s what we’ll do:
+
+1. Create `conf/my.cnf`
+2. Copy it in `Dockerfile` like this:
+
+   ```Dockerfile
+   COPY conf/my.cnf /etc/mysql/my.cnf
+   ```
+
+You’ll be 100% production-grade MariaDB ready.
+
+Shall we go ahead and add it now? 😎
+
+---
+Updated Version:
+Boom 💥! Let’s inject some **professional-grade MariaDB tuning** into your project right now.
+
+---
+
+## ✅ STEP 1: Create the Config File
+
+📄 File: `Inception/srcs/requirements/mariadb/conf/my.cnf`
+
+```ini
+[mysqld]
+# Allow connections from any IP (important for Docker internal networking)
+bind-address = 0.0.0.0
+
+# MariaDB default port
+port = 3306
+
+# Disable reverse DNS lookups — better performance & fewer weird bugs
+skip-host-cache
+skip-name-resolve
+```
+
+---
+
+## ✅ STEP 2: Update `Dockerfile` to Use It
+
+📄 File: `Inception/srcs/requirements/mariadb/Dockerfile`
+
+Here’s your updated and annotated version:
+
+```Dockerfile
+# 🏗️ Use the official Debian base (penultimate stable per subject)
+FROM debian:11
+
+# 🧰 Install MariaDB
+RUN apt-get update && \
+    apt-get install -y mariadb-server && \
+    rm -rf /var/lib/apt/lists/*
+
+# 🔧 Copy custom config file
+COPY conf/my.cnf /etc/mysql/my.cnf
+
+# 📂 Copy secure entrypoint script
+COPY tools/mariadb_entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
+
+# 🚀 Launch MariaDB securely
+ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
+```
+
+---
+
+## 🎯 What You’ve Gained
+
+✅ WordPress will now be able to connect from another container
+✅ You’ve hardened and optimized MariaDB
+✅ You’re fully aligned with both the **subject** and **real-world production practices**
+✅ Your image is still lean and fully under your control
+
+---
+
+Shall we now do a **full build & test of the MariaDB container**?
+We can walk through:
+
+* `docker-compose up --build mariadb`
+* Inspecting logs
+* Accessing the DB to verify everything’s running
+
+Say the word, Captain! 🐳🛠️
+
