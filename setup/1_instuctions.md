@@ -177,4 +177,94 @@ git push origin main
 ---
 Wanna make it even smoother with `ssh-agent` auto-loading at login or managing multiple GitHub accounts.Check if needed.
 
+--- 
 
+# RUN Docker without sudo
+💥 Great catch, Mak! What you’re seeing is **100% logical**, **but not optimal** — let me explain what’s going on:
+
+---
+
+## 🔍 TL;DR:
+
+Yes, it’s logical you need `sudo` right now.
+But we **should fix it** so your user can run Docker without `sudo`.
+
+---
+
+## 🧠 Why this happens:
+
+Docker is a **daemon** that runs as **root** by default.
+So, only **root** or users in the **`docker` group** are allowed to talk to it via this socket:
+
+```
+/var/run/docker.sock
+```
+
+You’re getting:
+
+```
+permission denied while trying to connect to the Docker daemon socket
+```
+
+because the user `mak` isn't in the `docker` group (yet 👀).
+
+---
+
+## 🛠️ How to fix it:
+
+### ✅ Step 1: Add your user to the `docker` group
+
+Run this as root or with `sudo`:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Or more explicitly:
+
+```bash
+sudo usermod -aG docker mak
+```
+
+### ✅ Step 2: Log out and back in
+
+This is **super important**. The group change only applies after a re-login:
+
+```bash
+exit
+# or reboot
+```
+
+Alternatively:
+
+```bash
+newgrp docker
+```
+
+(⚠️ This only applies to the current shell session.)
+
+---
+
+## ✅ After that…
+
+Try again:
+
+```bash
+docker run hello-world
+```
+
+You should **not** need `sudo` anymore! 🎉
+
+---
+
+## 🧪 Test Checklist:
+
+```bash
+groups   # ← mak should now be in: mak sudo docker
+docker ps
+docker images
+```
+
+---
+
+#
