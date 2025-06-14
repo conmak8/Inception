@@ -15,7 +15,11 @@ services:
       - db_root_password
 
     volumes:
-      - /home/mak/data/mariadb:/var/lib/mysql
+      # - /home/mak/data/mariadb:/var/lib/mysql
+      # - /home/mak/inception_data/mariadb:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
+
+
 
     networks:
       - inception_net
@@ -29,3 +33,6 @@ secrets:
 networks:
   inception_net:
     driver: bridge
+
+volumes:
+  mariadb_data:
