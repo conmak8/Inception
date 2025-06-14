@@ -13,8 +13,11 @@ COPY conf/my.cnf /etc/mysql/my.cnf
 COPY tools/mariadb_entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
 
-# Ensure correct ownership for MariaDB data directory at build-time
-RUN mkdir -p /var/lib/mysql && chown -R 999:999 /var/lib/mysql
+# # Ensure correct ownership for MariaDB data directory at build-time
+# RUN mkdir -p /var/lib/mysql && chown -R 999:999 /var/lib/mysql
+
+# Make a new clean directory, Docker won't override it with a volume
+RUN mkdir -p /var/lib/mysql-files && chown -R 999:999 /var/lib/mysql-files
 
 # 🚀 Launch MariaDB securely
 ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
