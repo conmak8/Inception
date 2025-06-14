@@ -17,7 +17,11 @@ RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
 # RUN mkdir -p /var/lib/mysql && chown -R 999:999 /var/lib/mysql
 
 # Make a new clean directory, Docker won't override it with a volume
-RUN mkdir -p /var/lib/mysql-files && chown -R 999:999 /var/lib/mysql-files
+# RUN mkdir -p /var/lib/mysql-files && chown -R 999:999 /var/lib/mysql-files
+
+RUN mkdir -p /var/lib/mysql /var/lib/mysql-files /run/mysqld \
+    && chown -R mysql:mysql /var/lib/mysql /var/lib/mysql-files /run/mysqld
+
 
 # 🚀 Launch MariaDB securely
 ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]

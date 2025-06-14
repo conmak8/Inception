@@ -9,6 +9,10 @@ WP_DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 # echo "📦 [INIT] Fixing volume ownership..."
 # chown -R 999:999 /var/lib/mysql
 
+echo "📦 [INIT] Fixing volume ownership..."
+chown -R mysql:mysql /var/lib/mysql /var/lib/mysql-files /run/mysqld
+
+
 # Check if the database directory already exists (i.e. first boot or not)
 if [ ! -d "/var/lib/mysql/${WP_DB_NAME}" ]; then
     echo "📦 First boot: initializing database..."
