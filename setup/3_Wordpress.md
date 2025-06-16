@@ -349,3 +349,143 @@ WP_ADMIN_USER=admin
 WP_ADMIN_PASSWORD=adminpass
 WP_ADMIN_EMAIL=admin@example.com
 ```
+# 4) Update .Yaml file
+
+```yaml
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    restart: unless-stopped
+
+    environment:
+      WP_DB_NAME: ${WP_DB_NAME}
+      WP_DB_USER: ${WP_DB_USER}
+
+    secrets:
+      - db_password
+      - db_root_password
+
+    volumes:
+      - /home/mak/data/mariadb:/var/lib/mysql
+
+    networks:
+      - inception_net
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    restart: unless-stopped
+
+    depends_on:
+      - mariadb
+
+    environment:
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+      - WP_URL=${WP_URL}
+      - WP_TITLE=${WP_TITLE}
+      - WP_ADMIN_USER=${WP_ADMIN_USER}
+      - WP_ADMIN_PASSWORD=${WP_ADMIN_PASSWORD}
+      - WP_ADMIN_EMAIL=${WP_ADMIN_EMAIL}
+      
+    secrets:
+      - db_password
+
+    volumes:
+      - wordpress_data:/var/www/html
+
+    networks:
+      - inception_net
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+
+networks:
+  inception_net:
+    driver: bridge
+
+volumes:
+  wordpress_data:
+
+```
+
+# 5) Update previous env pass
+🚀 Awesome Mak! Let's build your `.env` file like true Docker wizards 🧙‍♂️
+This file helps you **avoid hardcoding values** in `docker-compose.yml`, especially sensitive info or config that may change per environment (e.g. dev vs production).
+
+---
+
+## 📁 File: `srcs/.env`
+
+Here’s what you need 👇
+
+```dotenv
+# 🌐 WordPress DB Settings
+WORDPRESS_DB_NAME=wordpress
+WORDPRESS_DB_USER=wp_user
+WORDPRESS_DB_HOST=mariadb
+
+# 🌍 WordPress Site Info
+WP_URL=https://localhost         # or http:// if no SSL yet
+WP_TITLE="Mak's Epic Site"
+
+# 👤 WordPress Admin Credentials (for now testing only)
+WP_ADMIN_USER=admin
+WP_ADMIN_PASSWORD=adminpass
+WP_ADMIN_EMAIL=admin@example.com
+```
+
+---
+
+## 🔐 Secret Passwords
+
+Remember! Passwords like:
+
+* DB user password → in `secrets/db_password.txt`
+* MariaDB root password → in `secrets/db_root_password.txt`
+
+are **not** stored in `.env`, because we’re using Docker **secrets** 💡.
+
+So `wp_config.sh` will get them by reading from:
+
+```bash
+cat /run/secrets/db_password
+```
+
+✅ Clean, secure, and modular.
+Eval likes this. The real world loves it.
+
+---
+
+## 🧪 Quick Sanity Check
+
+To test if `.env` is loading properly:
+
+```bash
+cd srcs/
+docker compose config
+```
+
+It will render a full, resolved config file with variables replaced.
+If you see blank values like:
+
+```yaml
+WORDPRESS_DB_USER: ""
+```
+
+...you forgot to export or write them.
+
+---
+
+Ready to run it and build WordPress?
+Or shall we walk through `wp_config.sh` line-by-line before launching? 🛠️
