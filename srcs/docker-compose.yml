@@ -53,6 +53,23 @@ services:
     networks:
       - inception_net
 
+  nginx:
+   build: ./requirements/nginx
+   container_name: nginx
+   restart: unless-stopped
+
+   depends_on:
+    - wordpress
+
+   volumes:
+    - wordpress_data:/var/www/html
+
+   ports:
+    - "443:443"
+   networks:
+    - inception_net
+
+
 secrets:
   db_password:
     file: ../secrets/db_password.txt
