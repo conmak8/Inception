@@ -53,4 +53,5 @@ chown -R www-data:www-data /var/www/html
 
 # 🚀 Start PHP-FPM
 echo "🚀 Launching PHP-FPM..."
+mkdir -p /run/php
 exec php-fpm7.4 -F
