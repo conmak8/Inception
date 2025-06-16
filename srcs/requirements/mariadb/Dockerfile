@@ -34,6 +34,9 @@ RUN mkdir -p /run/mysqld && \
 RUN mkdir -p /var/lib/mysql && \
     chown mysql:mysql /var/lib/mysql
 
+# 🔧 Copy custom config file
+COPY conf/my.cnf /etc/mysql/my.cnf
+
 # Copy the configuration script
 COPY tools/mariadb_config.sh /usr/local/bin/mariadb_config.sh
 
