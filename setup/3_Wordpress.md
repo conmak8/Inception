@@ -283,7 +283,7 @@ ENTRYPOINT ["/usr/local/bin/wp_config.sh"]
 
 
 # 2) wp_config.sh
-
+```sh
 #!/bin/bash
 
 set -e
@@ -334,4 +334,18 @@ chown -R www-data:www-data /var/www/html
 # 🚀 Start PHP-FPM
 echo "🚀 Launching PHP-FPM..."
 exec php-fpm7.4 -F
+```
 
+# 3) Required .env Variables (non-secret part)
+Add to your srcs/.env:
+```
+WORDPRESS_DB_NAME=wordpress
+WORDPRESS_DB_USER=wp_user
+WORDPRESS_DB_HOST=mariadb
+
+WP_URL=https://localhost
+WP_TITLE="Mak's Docker Site"
+WP_ADMIN_USER=admin
+WP_ADMIN_PASSWORD=adminpass
+WP_ADMIN_EMAIL=admin@example.com
+```
