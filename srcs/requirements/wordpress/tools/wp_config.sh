@@ -5,10 +5,16 @@ set -e
 echo "📦 Starting WordPress setup..."
 
 # ✅ Wait for MariaDB to be ready
-echo "⏳ Waiting for MariaDB..."
-until mysqladmin ping -h"${WORDPRESS_DB_HOST}" --silent; do
-    sleep 2
+# echo "⏳ Waiting for MariaDB..."
+# until mysqladmin ping -h"${WORDPRESS_DB_HOST}" --silent; do
+#     sleep 2
+# done
+echo "📡 Pinging ${WORDPRESS_DB_HOST}..."
+until mysqladmin ping -h"${WORDPRESS_DB_HOST}" --protocol=tcp --silent; do
+  echo "🔁 Waiting for MariaDB to respond..."
+  sleep 2
 done
+
 
 # ✅ Download WordPress if not already
 if [ ! -f wp-load.php ]; then
