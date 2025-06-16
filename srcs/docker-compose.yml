@@ -83,3 +83,5 @@ networks:
 
 volumes:
   wordpress_data:
+  mariadb_data:
+
