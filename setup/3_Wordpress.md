@@ -113,8 +113,9 @@ services:
 
 ---
 # 1.Dockerfile
+`Version 1`
 
-```bash
+```Dockerfile
 # ✅ Base image - matches Inception requirement (penultimate Debian)
 FROM debian:11
 
@@ -154,3 +155,212 @@ EXPOSE 9000
 # 🚀 Entrypoint
 ENTRYPOINT ["wp_config.sh"]
 ```
+
+### explanation and improved dockerfile:
+Great question! Let's break this down Docker-style 🐳✨
+
+---
+
+## 🧠 TL;DR
+
+The subject *requires only WordPress with php-fpm*, **no web server like Nginx or Apache inside the WordPress container**.
+So yes, **you must install `php-fpm`**, but the rest (like `php-curl`, `vim`, `less`, etc.) are *optional* and should be installed **only if needed by WordPress** or your workflow.
+
+---
+
+## 🔍 What does the subject want?
+
+From the subject:
+
+> A Docker container that contains WordPress with **php-fpm (it must be installed and configured) only, without nginx.**
+
+👉 That means:
+
+* ✅ `php-fpm`: must be there to process PHP.
+* ✅ WordPress itself (PHP files + config).
+* 🚫 No NGINX or Apache inside this container.
+* 🚫 No unnecessary tools (keep it minimal, lightweight).
+
+---
+
+## ✅ What do you *actually* need?
+
+Here are the PHP extensions that WordPress [recommends](https://wordpress.org/about/requirements/) and that are commonly required by themes/plugins:
+
+```Dockerfile
+RUN apt-get update && apt-get install -y \
+    php php-fpm \
+    php-mysql \
+    php-xml php-mbstring php-curl \
+    php-gd php-intl php-soap php-zip
+```
+
+📝 **Explain like I'm 5**:
+
+* `php-mysql`: to talk to MariaDB.
+* `php-xml`: for processing XML (used by plugins).
+* `php-mbstring`: for UTF-8 string handling.
+* `php-curl`: WordPress uses it to fetch remote content.
+* `php-gd`: for image manipulation (needed by media uploads).
+* `php-intl`: for internationalization.
+* `php-soap`: sometimes needed by WooCommerce or APIs.
+* `php-zip`: for ZIP file handling (import/export plugins).
+
+---
+
+## ❌ What to drop (unless you know why):
+
+These are *not needed* in a production WordPress container:
+
+```Dockerfile
+curl wget tar unzip less vim
+```
+
+👉 They're dev tools or system utilities. Keep them out unless you're debugging or working interactively.
+
+---
+`Version 2`
+## 🧽 Final Recommended Line
+
+If you're aiming for a clean, lean container just for WordPress with php-fpm:
+
+```Dockerfile
+RUN apt-get update && apt-get install -y \
+    php php-fpm \
+    php-mysql \
+    php-xml php-mbstring php-curl \
+    php-gd php-intl php-soap php-zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+```
+
+That’s your sweet spot: ✔️ covers most needs, ❌ no bloat.
+
+---
+
+## 💡 Bonus: Use `.dockerignore` and multistage builds
+
+To keep images light and tidy, don’t forget:
+
+```dockerignore
+*.log
+*.sql
+*.env
+node_modules/
+```
+`Version 3`
+# ✅ Base image (required by subject)
+FROM debian:11
+
+# 🔧 Install PHP, MariaDB client, WP-CLI dependencies
+RUN apt-get update && apt-get install -y \
+    php php-fpm php-mysql php-curl php-gd php-mbstring php-xml php-intl php-zip \
+    mariadb-client curl less unzip wget tar \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 🧙 Install WP-CLI
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp && \
+    wp --info
+
+# 📁 Create WordPress working directory
+RUN mkdir -p /var/www/html
+WORKDIR /var/www/html
+
+# 🧠 Add custom entrypoint logic
+COPY tools/wp_config.sh /usr/local/bin/wp_config.sh
+RUN chmod +x /usr/local/bin/wp_config.sh
+
+# ⚙️ PHP-FPM config fix: allow external connections
+RUN sed -i "s|listen = /run/php/php.*-fpm.sock|listen = 9000|" \
+    /etc/php/*/fpm/pool.d/www.conf || true
+
+# 🚪 Expose FPM port (default PHP-FPM port)
+EXPOSE 9000
+
+# 🧠 Run the script
+ENTRYPOINT ["/usr/local/bin/wp_config.sh"]
+
+
+# 2) wp-config.php
+Boom! Let’s WordPress-it-up properly 🧱📄
+Next up: the legendary **`wp-config.php`** — this file tells WordPress *how to find* the database.
+
+---
+
+## 🧠 TL;DR — What’s `wp-config.php`?
+
+Think of `wp-config.php` like the **brainstem** of WordPress:
+
+* Connects PHP to MySQL (MariaDB here)
+* Reads environment variables
+* Sets table prefixes, salts, etc.
+* Without it? → 🧠 = 🪦 dead CMS
+
+---
+
+## 💡 Your Version Will Be Different!
+
+Normally, it’s generated interactively.
+But we’ll **generate our own non-interactive version**, using:
+
+* `getenv('SOME_ENV')` for secrets
+* and some Docker-friendly constants.
+
+---
+
+## 📁 File: `srcs/requirements/wordpress/wp-config.php`
+
+```php
+<?php
+
+// 🧠 Database settings — read from ENV
+define('DB_NAME', getenv('WORDPRESS_DB_NAME'));
+define('DB_USER', getenv('WORDPRESS_DB_USER'));
+define('DB_PASSWORD', trim(file_get_contents('/run/secrets/db_password')));
+define('DB_HOST', getenv('WORDPRESS_DB_HOST'));
+
+// 📦 Default charset and collation
+define('DB_CHARSET', 'utf8');
+define('DB_COLLATE', '');
+
+// 🛡️ Security keys & salts (use static values or generate)
+define('AUTH_KEY',         'put-your-unique-phrase-here');
+define('SECURE_AUTH_KEY',  'put-your-unique-phrase-here');
+define('LOGGED_IN_KEY',    'put-your-unique-phrase-here');
+define('NONCE_KEY',        'put-your-unique-phrase-here');
+define('AUTH_SALT',        'put-your-unique-phrase-here');
+define('SECURE_AUTH_SALT', 'put-your-unique-phrase-here');
+define('LOGGED_IN_SALT',   'put-your-unique-phrase-here');
+define('NONCE_SALT',       'put-your-unique-phrase-here');
+
+// 🛠️ Table prefix (customizable)
+$table_prefix = 'wp_';
+
+// 🐞 Debug
+define('WP_DEBUG', false);
+
+// 🔚 Absolute path
+if (!defined('ABSPATH')) {
+    define('ABSPATH', __DIR__ . '/');
+}
+require_once ABSPATH . 'wp-settings.php';
+```
+
+---
+
+## ✅ Why This Works
+
+* `getenv()` works in Docker containers if passed through `environment:` in `docker-compose.yml`
+* `file_get_contents()` reads the Docker `secrets` mount
+* It bypasses WordPress's installer screen and just **works on boot** if MariaDB is reachable
+
+---
+
+✅ All good? Next we’ll write `wp_config.sh` to:
+
+* Wait for MariaDB ⏳
+* Chown properly
+* Maybe auto-install WordPress CLI (optional)
+
+Ready to make `wp_config.sh`, Commander Mak? 😎
