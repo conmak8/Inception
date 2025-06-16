@@ -1,41 +1,6 @@
-version: '3.8'
+# 🐳 Inception Project - Docker Compose Configuration
+# Note: Remove version line - it's deprecated in newer Docker Compose
 
-# services:
-#   mariadb:
-#     build: ./requirements/mariadb
-#     container_name: mariadb
-#     restart: unless-stopped
-
-#     environment:
-#       WP_DB_NAME: ${WP_DB_NAME}
-#       WP_DB_USER: ${WP_DB_USER}
-
-#     secrets:
-#       - db_password
-#       - db_root_password
-
-#     volumes:
-#       # - /home/mak/data/mariadb:/var/lib/mysql
-#       # - /home/mak/inception_data/mariadb:/var/lib/mysql
-#       # - mariadb_data:/var/lib/mysql
-#       - mariadb_data:/var/lib/mysql-files
-
-
-#     networks:
-#       - inception_net
-
-# secrets:
-#   db_password:
-#     file: ../secrets/db_password.txt
-#   db_root_password:
-#     file: ../secrets/db_root_password.txt
-
-# networks:
-#   inception_net:
-#     driver: bridge
-
-# volumes:
-#   mariadb_data:
 services:
   mariadb:
     build: ./requirements/mariadb
@@ -57,6 +22,55 @@ services:
     networks:
       - inception_net
 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    restart: unless-stopped
+
+    depends_on:
+      - mariadb
+
+    environment:
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+      - WP_URL=${WP_URL}
+      - WP_TITLE=${WP_TITLE}
+      - WP_ADMIN_USER=${WP_ADMIN_USER}
+      - WP_ADMIN_PASSWORD=${WP_ADMIN_PASSWORD}
+      - WP_ADMIN_EMAIL=${WP_ADMIN_EMAIL}
+      
+    secrets:
+      - db_password
+
+    volumes:
+      - wordpress_data:/var/www/html
+
+    networks:
+      - inception_net
+
+  nginx:
+   build: ./requirements/nginx
+   container_name: nginx
+   restart: unless-stopped
+
+   depends_on:
+    - wordpress
+
+   volumes:
+    - wordpress_data:/var/www/html
+
+   ports:
+    - "443:443"
+   networks:
+    - inception_net
+
+
 secrets:
   db_password:
     file: ../secrets/db_password.txt
@@ -68,4 +82,4 @@ networks:
     driver: bridge
 
 volumes:
-  mariadb_data:
+  wordpress_data:

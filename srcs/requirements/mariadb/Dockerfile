@@ -13,41 +13,41 @@
 # COPY tools/mariadb_entrypoint.sh /usr/local/bin/
 # RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
 
-# # # Ensure correct ownership for MariaDB data directory at build-time
-# # RUN mkdir -p /var/lib/mysql && chown -R 999:999 /var/lib/mysql
-
-# # Make a new clean directory, Docker won't override it with a volume
-# # RUN mkdir -p /var/lib/mysql-files && chown -R 999:999 /var/lib/mysql-files
-
-# RUN mkdir -p /var/lib/mysql /var/lib/mysql-files /run/mysqld \
-#     && chown -R mysql:mysql /var/lib/mysql /var/lib/mysql-files /run/mysqld
-
-
 # # 🚀 Launch MariaDB securely
 # ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
 
-# 🏗️ Use the official Debian base (penultimate stable per subject)
-FROM debian:11
+# Use Debian Bullseye as base image
+FROM debian:bullseye
 
-# 🧰 Install MariaDB
+# Update package lists and install MariaDB server
 RUN apt-get update && \
     apt-get install -y mariadb-server && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Create the mysqld run directory and set proper permissions
+RUN mkdir -p /run/mysqld && \
+    chown mysql:mysql /run/mysqld && \
+    chmod 755 /run/mysqld
+
+# Create the MariaDB data directory if it doesn't exist
+RUN mkdir -p /var/lib/mysql && \
+    chown mysql:mysql /var/lib/mysql
 
 # 🔧 Copy custom config file
 COPY conf/my.cnf /etc/mysql/my.cnf
 
-# 📂 Copy secure entrypoint script
-COPY tools/mariadb_entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
+# Copy the configuration script
+COPY tools/mariadb_config.sh /usr/local/bin/mariadb_config.sh
 
-# 🏗️ Create necessary directories with proper ownership
-RUN mkdir -p /var/lib/mysql /var/lib/mysql-files /run/mysqld /var/log/mysql \
-    && chown -R mysql:mysql /var/lib/mysql /var/lib/mysql-files /run/mysqld /var/log/mysql \
-    && chmod 755 /var/lib/mysql /var/lib/mysql-files /run/mysqld
+# Make the script executable
+RUN chmod +x /usr/local/bin/mariadb_config.sh
 
-# 🔐 Expose the MariaDB port
+# Expose the MariaDB port
 EXPOSE 3306
 
-# 🚀 Launch MariaDB securely
-ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
+# Set the user to mysql (security best practice)
+USER mysql
+
+# Run the configuration script
+CMD ["/usr/local/bin/mariadb_config.sh"]
