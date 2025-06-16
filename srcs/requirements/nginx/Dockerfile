@@ -25,3 +25,5 @@ EXPOSE 443
 
 # 🚀 Entrypoint
 ENTRYPOINT ["/usr/local/bin/nginx_entrypoint.sh"]
+
+
