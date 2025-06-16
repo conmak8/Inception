@@ -282,85 +282,56 @@ EXPOSE 9000
 ENTRYPOINT ["/usr/local/bin/wp_config.sh"]
 
 
-# 2) wp-config.php
-Boom! Let’s WordPress-it-up properly 🧱📄
-Next up: the legendary **`wp-config.php`** — this file tells WordPress *how to find* the database.
+# 2) wp_config.sh
 
----
+#!/bin/bash
 
-## 🧠 TL;DR — What’s `wp-config.php`?
+set -e
 
-Think of `wp-config.php` like the **brainstem** of WordPress:
+echo "📦 Starting WordPress setup..."
 
-* Connects PHP to MySQL (MariaDB here)
-* Reads environment variables
-* Sets table prefixes, salts, etc.
-* Without it? → 🧠 = 🪦 dead CMS
+# ✅ Wait for MariaDB to be ready
+echo "⏳ Waiting for MariaDB..."
+until mysqladmin ping -h"${WORDPRESS_DB_HOST}" --silent; do
+    sleep 2
+done
 
----
+# ✅ Download WordPress if not already
+if [ ! -f wp-load.php ]; then
+    echo "⬇️ Downloading WordPress..."
+    wp core download --locale=en_US --allow-root
+fi
 
-## 💡 Your Version Will Be Different!
+# ✅ Generate config if not already
+if [ ! -f wp-config.php ]; then
+    echo "⚙️ Generating wp-config.php..."
+    wp config create \
+        --dbname="${WORDPRESS_DB_NAME}" \
+        --dbuser="${WORDPRESS_DB_USER}" \
+        --dbpass="$(cat /run/secrets/db_password)" \
+        --dbhost="${WORDPRESS_DB_HOST}" \
+        --path=/var/www/html \
+        --skip-check \
+        --allow-root
+fi
 
-Normally, it’s generated interactively.
-But we’ll **generate our own non-interactive version**, using:
+# ✅ Install WordPress if not installed
+if ! wp core is-installed --allow-root; then
+    echo "🧱 Installing WordPress..."
+    wp core install \
+        --url="${WP_URL}" \
+        --title="${WP_TITLE}" \
+        --admin_user="${WP_ADMIN_USER}" \
+        --admin_password="${WP_ADMIN_PASSWORD}" \
+        --admin_email="${WP_ADMIN_EMAIL}" \
+        --skip-email \
+        --allow-root
+fi
 
-* `getenv('SOME_ENV')` for secrets
-* and some Docker-friendly constants.
+# ✅ Fix permissions
+chown -R www-data:www-data /var/www/html
 
----
+# 🚀 Start PHP-FPM
+echo "🚀 Launching PHP-FPM..."
+exec php-fpm7.4 -F
 
-## 📁 File: `srcs/requirements/wordpress/wp-config.php`
-
-```php
-<?php
-
-// 🧠 Database settings — read from ENV
-define('DB_NAME', getenv('WORDPRESS_DB_NAME'));
-define('DB_USER', getenv('WORDPRESS_DB_USER'));
-define('DB_PASSWORD', trim(file_get_contents('/run/secrets/db_password')));
-define('DB_HOST', getenv('WORDPRESS_DB_HOST'));
-
-// 📦 Default charset and collation
-define('DB_CHARSET', 'utf8');
-define('DB_COLLATE', '');
-
-// 🛡️ Security keys & salts (use static values or generate)
-define('AUTH_KEY',         'put-your-unique-phrase-here');
-define('SECURE_AUTH_KEY',  'put-your-unique-phrase-here');
-define('LOGGED_IN_KEY',    'put-your-unique-phrase-here');
-define('NONCE_KEY',        'put-your-unique-phrase-here');
-define('AUTH_SALT',        'put-your-unique-phrase-here');
-define('SECURE_AUTH_SALT', 'put-your-unique-phrase-here');
-define('LOGGED_IN_SALT',   'put-your-unique-phrase-here');
-define('NONCE_SALT',       'put-your-unique-phrase-here');
-
-// 🛠️ Table prefix (customizable)
-$table_prefix = 'wp_';
-
-// 🐞 Debug
-define('WP_DEBUG', false);
-
-// 🔚 Absolute path
-if (!defined('ABSPATH')) {
-    define('ABSPATH', __DIR__ . '/');
-}
-require_once ABSPATH . 'wp-settings.php';
-```
-
----
-
-## ✅ Why This Works
-
-* `getenv()` works in Docker containers if passed through `environment:` in `docker-compose.yml`
-* `file_get_contents()` reads the Docker `secrets` mount
-* It bypasses WordPress's installer screen and just **works on boot** if MariaDB is reachable
-
----
-
-✅ All good? Next we’ll write `wp_config.sh` to:
-
-* Wait for MariaDB ⏳
-* Chown properly
-* Maybe auto-install WordPress CLI (optional)
-
-Ready to make `wp_config.sh`, Commander Mak? 😎
