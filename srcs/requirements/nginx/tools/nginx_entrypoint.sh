@@ -1,4 +1,4 @@
-# #!/bin/sh
+#!/bin/sh
 
 # # 📢 Entry script for Nginx with SSL
 
@@ -13,9 +13,6 @@
 # # 🚀 Start Nginx
 # echo "🟢 Launching Nginx..."
 # exec nginx -g "daemon off;"
-
-
-#!/bin/sh
 
 echo "🔐 Generating SSL cert..."
 

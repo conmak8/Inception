@@ -1,5 +1,5 @@
+#!/bin/sh
 # # 💡 Generate a self-signed certificate valid for 365 days
-# #!/bin/sh
 
 # # 📁 Create local test dir for certs
 # mkdir -p ./tmp_certs
@@ -12,8 +12,6 @@
 #   -out ./tmp_certs/cert.pem
 
 # echo "✅ Certs written to ./tmp_certs/"
-
-#!/bin/sh
 
 OUTDIR=${1:-/tmp/certs}
 mkdir -p "$OUTDIR"
