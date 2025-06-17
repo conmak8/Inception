@@ -15,6 +15,9 @@ until mysqladmin ping -h"${WORDPRESS_DB_HOST}" --protocol=tcp --silent; do
   sleep 2
 done
 
+# 🚀 Change to working directory of WordPress
+cd /var/www/html
+
 
 # ✅ Download WordPress if not already
 if [ ! -f wp-load.php ]; then
