@@ -9,7 +9,7 @@ data/
 *.log
 
 # Ignore secret files
-secrets/*
+*secrets*
 # !secrets/.gitkeep   # Allow folder to exist, if needed
 
 # Optional: ignore IDE/editor noise
@@ -18,5 +18,5 @@ secrets/*
 *.swp
 
 #.env
-.env
+*.env
 *test*
