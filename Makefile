@@ -4,9 +4,32 @@ NAME=inception
 COMPOSE=docker compose
 SRC_DIR=srcs
 
+# Path variables
+DATA_DIR := /home/mak/data
+MARIADB_DIR := $(DATA_DIR)/mariadb
+WORDPRESS_DIR := $(DATA_DIR)/wordpress
+
+
 # 🧱 Default target: Build & start everything
-all:
+all: init
 	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) up --build -d --remove-orphans
+
+init:
+	@echo "🛠️  Checking data directories..."
+	@if [ ! -d "$(MARIADB_DIR)" ]; then \
+		echo "📁 Creating $(MARIADB_DIR)"; \
+		mkdir -p $(MARIADB_DIR); \
+		sudo chown -R 999:999 $(MARIADB_DIR); \
+	else \
+		echo "✅ $(MARIADB_DIR) already exists"; \
+	fi
+	@if [ ! -d "$(WORDPRESS_DIR)" ]; then \
+		echo "📁 Creating $(WORDPRESS_DIR)"; \
+		mkdir -p $(WORDPRESS_DIR); \
+		sudo chown -R 33:33 $(WORDPRESS_DIR); \
+	else \
+		echo "✅ $(WORDPRESS_DIR) already exists"; \
+	fi
 
 # 🛠️ Just build (no run)
 build:
@@ -23,6 +46,7 @@ clean:
 # 💣 Remove containers, networks, volumes
 fclean:
 	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) down -v
+	sudo rm -rf $(MARIADB_DIR) $(WORDPRESS_DIR)
 
 # 🔁 Full rebuild from scratch
 re: fclean all

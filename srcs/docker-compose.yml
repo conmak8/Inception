@@ -51,7 +51,8 @@ services:
       - db_password
 
     volumes:
-      - wordpress_data:/var/www/html
+      - /home/mak/data/wordpress:/var/www/html
+      # - wordpress_data:/var/www/html
 
     networks:
       - inception_net
@@ -85,6 +86,16 @@ networks:
 
 volumes:
   wordpress_data:
-  # Possible needed check 2/2
-  #mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/mak/data/wordpress
+      o: bind
+
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/mak/data/mariadb
+      o: bind
 
