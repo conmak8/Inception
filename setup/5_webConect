@@ -1,0 +1,205 @@
+🔥 Ohhh now we’re talking production vibes! Changing `https://localhost` → `https://cmakario.42.de` gives your Inception project real swagger 😎
+
+Let’s do it step by step 👇
+
+---
+
+## 🧠 TL;DR Checklist
+
+| 🔧 What to Update            | ✅ Done In...                     |
+| ---------------------------- | -------------------------------- |
+| WordPress Site URL           | `.env` file (and maybe WP DB)    |
+| NGINX config (`server_name`) | `default.conf` or similar        |
+| Local machine DNS resolution | `/etc/hosts` on your VM          |
+| TLS certificate              | Self-signed for `cmakario.42.de` |
+
+---
+
+## ✅ Step-by-Step Instructions
+
+---
+
+### 🟩 1. Update `.env`
+
+Change this line:
+
+```env
+WP_URL=https://cmakario.42.de
+```
+
+Also make sure your WordPress install uses it when setting the URL via `wp_config.sh` or `wp-cli`.
+
+---
+
+### 🟨 2. Update NGINX Config
+
+Go to your NGINX config file (e.g., `srcs/requirements/nginx/conf/default.conf` or similar), and change:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name cmakario.42.de;
+
+    # ...
+}
+```
+
+⚠️ Don’t leave it as `localhost` — it must match the domain.
+
+Also make sure TLS certs are correctly referenced:
+
+```nginx
+ssl_certificate /etc/nginx/ssl/cmaka.crt;
+ssl_certificate_key /etc/nginx/ssl/cmaka.key;
+```
+
+If you’re using self-signed certs, regenerate them for the new domain 👇
+
+---
+
+### 🟦 3. Regenerate TLS Certificate (if needed)
+
+If you used `openssl` for a self-signed cert:
+
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout cmakario.42.de.key \
+  -out cmakario.42.de.crt \
+  -subj "/C=DE/ST=BW/L=Heilbronn/O=42/CN=cmakario.42.de"
+```
+
+And update your Dockerfile or volume to copy them in.
+
+---
+
+### 🟥 4. Add to `/etc/hosts` (on your **VM**)
+
+On your VM (the machine you’re testing from), edit:
+
+```bash
+sudo nano /etc/hosts
+```
+
+Add this line:
+
+```bash
+127.0.0.1 cmakario.42.de
+```
+
+Now when you open `https://cmakario.42.de`, it routes to `localhost`.
+
+---
+
+### 🟪 5. Restart Everything 🚀
+
+```bash
+make re
+```
+
+Then open:
+
+```bash
+https://cmakario.42.de
+```
+
+⚠️ Your browser may give a warning since the cert is self-signed. Accept it.
+
+---
+
+### 🧠 BONUS: Fix WordPress if it still redirects to old domain
+
+Sometimes WP hardcodes its URL in the DB.
+
+To force it via WP-CLI:
+
+```bash
+docker exec -it wordpress sh
+wp option update siteurl https://cmakario.42.de
+wp option update home https://cmakario.42.de
+```
+
+---
+
+## 🔥 Want Me to Help You Generate the TLS Cert and NGINX Conf Snippet?
+
+Just say the word and I’ll drop the command + files ready to copy-paste.
+
+
+----------
+
+🚀 Nice — that's a clean and flexible little TLS generation script! But let’s ✨tweak it✨ just a bit to make it **domain-ready** for your custom `cmakario.42.de`.
+
+---
+
+## 🔍 What's Wrong with the Current Script?
+
+You're using:
+
+```bash
+-subj "/C=DE/ST=BW/L=Heilbronn/O=42Inception/CN=localhost"
+```
+
+⚠️ `CN=localhost` means the certificate is **only valid for `localhost`**
+→ Browsers will throw a ⚠️ **domain mismatch error** when visiting `https://cmakario.42.de`
+
+---
+
+## ✅ Here's a Fixed & Improved Version
+
+```bash
+#!/bin/bash
+
+# ✅ Flexible output directory (default: /tmp/certs)
+OUTDIR=${1:-/tmp/certs}
+DOMAIN=${2:-cmakario.42.de}
+
+mkdir -p "$OUTDIR"
+
+# ✅ Generate key + cert for specified domain
+openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout "$OUTDIR/${DOMAIN}.key" \
+  -out "$OUTDIR/${DOMAIN}.crt" \
+  -subj "/C=DE/ST=BW/L=Heilbronn/O=42Inception/CN=${DOMAIN}"
+
+echo "✅ TLS certificate generated for https://${DOMAIN}"
+echo "🔑 Private Key: $OUTDIR/${DOMAIN}.key"
+echo "📄 Certificate: $OUTDIR/${DOMAIN}.crt"
+```
+
+---
+
+## 🧪 Example Usage:
+
+```bash
+bash generate_cert.sh ./requirements/nginx/conf cmakario.42.de
+```
+
+It’ll create:
+
+```
+./requirements/nginx/conf/cmakario.42.de.crt
+./requirements/nginx/conf/cmakario.42.de.key
+```
+
+---
+
+## 🔗 Update your `nginx.conf`:
+
+```nginx
+ssl_certificate     /etc/ssl/certs/cmakario.42.de.crt;
+ssl_certificate_key /etc/ssl/private/cmakario.42.de.key;
+```
+
+---
+
+## 📦 Dockerfile Add
+
+```Dockerfile
+COPY conf/cmakario.42.de.crt /etc/ssl/certs/
+COPY conf/cmakario.42.de.key /etc/ssl/private/
+```
+
+---
+
+Let me know if you want an auto-detect Makefile target for cert creation as well (`make certs`?) 😎
