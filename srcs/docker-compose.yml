@@ -16,8 +16,10 @@ services:
       - db_root_password
 
     volumes:
+      - /home/mak/data/mariadb:/var/lib/mysql
+      # Possible needed check 1/2
       # 🔧 CRITICAL FIX: Mount to the correct MariaDB data directory
-      - mariadb_data:/var/lib/mysql
+      # - mariadb_data:/var/lib/mysql
 
     networks:
       - inception_net
@@ -83,5 +85,6 @@ networks:
 
 volumes:
   wordpress_data:
-  mariadb_data:
+  # Possible needed check 2/2
+  #mariadb_data:
 
