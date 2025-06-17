@@ -24,8 +24,8 @@ mkdir -p "$TMP_CERTS"
 sh /usr/local/bin/ssl.sh "$TMP_CERTS"
 
 # Then move to nginx expected location
-mv "$TMP_CERTS/cert.pem" /etc/ssl/certs/cert.pem
-mv "$TMP_CERTS/key.pem" /etc/ssl/private/key.pem
+mv "$TMP_CERTS/cmakario.42.de.crt" /etc/ssl/certs/cmakario.42.de.crt
+mv "$TMP_CERTS/cmakario.42.de.key" /etc/ssl/private/cmakario.42.de.key
 
 echo "✅ Moved certs to /etc/ssl/{certs,private}"
 
