@@ -13,11 +13,6 @@ COPY conf/default.conf /etc/nginx/sites-available/default
 COPY tools/ssl.sh /usr/local/bin/ssl.sh
 COPY tools/nginx_entrypoint.sh /usr/local/bin/nginx_entrypoint.sh
 
-# 📥 Copy certificates
-COPY conf/cmakario.42.de.crt /etc/ssl/certs/
-COPY conf/cmakario.42.de.key /etc/ssl/private/
-
-
 # 🔐 Make scripts executable
 RUN chmod +x /usr/local/bin/ssl.sh /usr/local/bin/nginx_entrypoint.sh
 
@@ -30,5 +25,3 @@ EXPOSE 443
 
 # 🚀 Entrypoint
 ENTRYPOINT ["/usr/local/bin/nginx_entrypoint.sh"]
-
-

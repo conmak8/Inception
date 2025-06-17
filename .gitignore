@@ -20,3 +20,7 @@ data/
 #.env
 *.env
 *test*
+
+# Ignore pushing certificate
+srcs/requirements/nginx/conf/*.key
+srcs/requirements/nginx/conf/*.crt
