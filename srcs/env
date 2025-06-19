@@ -1,0 +1,23 @@
+# 🌍 Environment Configuration for Inception Project
+# Place this file in the same directory as docker-compose.yml
+
+# 🗄️ Database Configuration
+WP_DB_NAME=wordpress
+WP_DB_USER=wp_user
+WP_DB_HOST=mariadb
+WP_DB_ROOT_PASSWORD=your_super_secure_root_password
+
+# 🌐 WordPress Configuration  
+WORDPRESS_DB_NAME=wordpress
+WORDPRESS_DB_USER=wp_user
+WORDPRESS_DB_HOST=mariadb
+
+# 🏠 WordPress Site Settings
+WP_URL=https://mak.42.fr
+WP_TITLE=My Awesome 42 Site
+WP_ADMIN_USER=admin
+WP_ADMIN_PASSWORD=secure_admin_password
+WP_ADMIN_EMAIL=admin@mak.42.fr
+
+# 🔐 Security Note: Change these passwords to strong, unique values!
+# Use a password generator for production environments
