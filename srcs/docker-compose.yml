@@ -22,7 +22,7 @@ services:
       - inception_net
 
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${WP_DB_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
       interval: 30s
@@ -40,7 +40,8 @@ services:
     environment:
       - WORDPRESS_DB_NAME=${WP_DB_NAME}
       - WORDPRESS_DB_USER=${WP_DB_USER}
-      - WORDPRESS_DB_HOST=${WP_DB_HOST}
+      - WORDPRESS_DB_HOST=mariadb
+      - WORDPRESS_DB_PASSWORD_FILE=/run/secrets/db_password
       - WP_URL=${WP_URL}
       - WP_TITLE=${WP_TITLE}
       - WP_ADMIN_USER=${WP_ADMIN_USER}
