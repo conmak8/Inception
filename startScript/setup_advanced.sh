@@ -87,4 +87,18 @@ else
   echo ".env file already exists at $ENV_FILE"
 fi
 
+echo "Generate SSL certificate for nginx..."
+
+# Go to your project folder
+cd ~/Desktop/InceptionV2/srcs/requirements/nginx/conf
+
+# Generate key + cert in one go (valid 365 days, self-signed)
+openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout cmakario.42.de.key \
+  -out cmakario.42.de.crt \
+  -subj "/CN=cmakario.42.de"
+
+echo "--- SSL certificate generation complete ---"
+
 echo "--- Script completed successfully ---"
