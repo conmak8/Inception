@@ -11,11 +11,11 @@ all: init
 
 init:
 	@if [ -f .setup_done ]; then \
-		echo "✅ Setup already done. Skipping..."; \
+		echo "✅ Setup already done. Skipping setup script."; \
 	else \
-		echo "🔧 Running setup script..."; \
+		echo "🔧 Running setup script (first-time initialization)..."; \
 		if [ -x ./startScript/setup_advanced.sh ]; then \
-			./startScript/setup_advanced.sh && touch .setup_done; \
+			./startScript/setup_advanced.sh && touch .setup_done && echo '✅ Setup script completed!'; \
 		else \
 			echo '⚠️  setup_advanced.sh not found or not executable!'; \
 		fi \
@@ -55,6 +55,8 @@ sclean:
 
 # 💣 Super nuclear option: removes all unused containers, images, networks, and build cache
 prune:
+	@echo "🧹 Removing local DB/data folders..."
+	@sudo rm -rf $${HOME}/data/mariadb $${HOME}/data/wordpress
 	@echo "🔥 Pruning ALL unused Docker containers, images, networks, volumes, and build cache!"
 	@docker system prune -a -f
 	@docker volume prune -f
