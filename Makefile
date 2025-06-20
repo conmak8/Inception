@@ -51,7 +51,13 @@ sclean:
 	@sudo rm -rf $${HOME}/data/mariadb $${HOME}/data/wordpress
 	@rm -f .setup_done
 
-	# @sudo rm -rf /home/mak/data/mariadb /home/mak/data/wordpress 
+	# @sudo rm -rf /home/mak/data/mariadb /home/mak/data/wordpress
+
+# 💣 Super nuclear option: removes all unused containers, images, networks, and build cache
+prune:
+	@echo "🔥 Pruning ALL unused Docker containers, images, networks, volumes, and build cache!"
+	@docker system prune -a -f
+	@docker volume prune -f
 
 # 🔁 Full rebuild from scratch
 re: fclean all
