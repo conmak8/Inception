@@ -14,8 +14,8 @@ COPY conf/cmakario.42.de.crt /etc/ssl/certs/
 COPY conf/cmakario.42.de.key /etc/ssl/private/
 
 # Copy an entrypoint script to auto-generate certs at container start
-COPY tools/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY tools/nginx_entrypoint.sh /nginx_entrypoint.sh
+RUN chmod +x /nginx_entrypoint.sh
 
 EXPOSE 443
 
