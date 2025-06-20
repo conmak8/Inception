@@ -16,6 +16,9 @@ services:
 
     restart: unless-stopped
 
+    networks:
+      - inception
+
   wordpress:
     build: ./requirements/wordpress
     container_name: wordpress
@@ -37,10 +40,12 @@ services:
     secrets:
       - db_password
     volumes:
-
       - /home/mak/data/wordpress:/var/www/html
 
     restart: unless-stopped
+
+    networks:
+      - inception
 
   nginx:
     build: ./requirements/nginx
@@ -56,8 +61,14 @@ services:
 
     restart: unless-stopped
 
+    networks:
+      - inception
+
 secrets:
   db_password:
     file: ../secrets/db_password.txt
   db_root_password:
     file: ../secrets/db_root_password.txt
+
+networks:
+  inception:

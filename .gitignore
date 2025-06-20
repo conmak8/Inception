@@ -24,3 +24,4 @@ data/
 # Ignore pushing certificate
 srcs/requirements/nginx/conf/*.key
 srcs/requirements/nginx/conf/*.crt
+srcs/conf/
