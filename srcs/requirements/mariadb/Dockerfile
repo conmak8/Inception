@@ -22,8 +22,12 @@ RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
 # 🚪 Expose MariaDB port
 EXPOSE 3306
 
-# 👤 Switch to mysql user for runtime
-USER mysql
+# 👤 Switch to mysql user for runtime -> it crashes coz has no root privalages to 
+# When you mount a host folder (like /home/mak/data/mariadb) into a container, Docker doesn’t let a non-root user (e.g., mysql) 
+# change its ownership unless that host folder is already owned by the exact UID/GID expected 
+# by the container user (and sometimes not even then, depending on filesystem, rootless Docker, etc).
+# By running as root (USER unset or explicitly root), your entrypoint and MariaDB have permission to initialize, fix ownership, and create files.
+#USER mysql
 
 # 🚀 Use the entrypoint script
 ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
