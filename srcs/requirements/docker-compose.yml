@@ -1,0 +1,41 @@
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    environment:
+      - MYSQL_DATABASE=${WP_DB_NAME}
+      - MYSQL_USER=${WP_DB_USER}
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+      - /home/mak/data/mariadb:/var/lib/mysql
+    restart: unless-stopped
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    depends_on:
+      - mariadb
+    environment:
+      - WORDPRESS_DB_HOST=mariadb
+    volumes:
+      - /home/mak/data/wordpress:/var/www/html
+    restart: unless-stopped
+
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    depends_on:
+      - wordpress
+    ports:
+      - "443:443"
+    volumes:
+      - /home/mak/data/wordpress:/var/www/html:ro
+    restart: unless-stopped
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
