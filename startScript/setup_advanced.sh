@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Script Security
+SECRET="letmein"
+echo -n "Enter script password: "
+read -s INPUT
+echo
+if [ "$INPUT" != "$SECRET" ]; then
+  echo "Access denied."
+  exit 1
+fi
+
 # Define source and destination paths
 SOURCE_SECRETS="/home/mak/Desktop/extraFiles/secrets/"
 DEST_SECRETS="/home/mak/Desktop/InceptionV2/"
@@ -60,6 +70,24 @@ echo "--- Data directory setup complete ---"
 ENV_FILE="$DEST_ENV/.env"
 if [ ! -f "$ENV_FILE" ]; then
   echo "--- Creating .env file ---"
+
+  while true; do
+    echo -n "Enter WordPress admin password (or 0 to exit): "
+    read -s WP_ADMIN_PASSWORD
+    echo
+    [ "$WP_ADMIN_PASSWORD" = "0" ] && { echo "Exit requested. Goodbye!"; exit 0; }
+
+    echo -n "Re-enter password to confirm: "
+    read -s WP_ADMIN_PASSWORD_CONFIRM
+    echo
+
+    if [ "$WP_ADMIN_PASSWORD" = "$WP_ADMIN_PASSWORD_CONFIRM" ]; then
+      break   # Success! Exit loop.
+    else
+      echo "Passwords do not match. Try again, or press 0 to exit."
+    fi
+  done
+
   cat <<EOL > "$ENV_FILE"
 # 💾 MariaDB Configuration - Safe values only (non-sensitive)
 WP_DB_NAME=wordpress
@@ -74,9 +102,9 @@ WORDPRESS_DB_HOST=mariadb
 WP_URL=https://cmakario.42.de         # or http:// if no SSL yet
 WP_TITLE="Mak's Epic Site"
 
-# 👤 WordPress Admin Credentials (for now testing only)
+# 👤 WordPress Admin Credentials (non-sensitive)
 WP_ADMIN_USER=admin
-WP_ADMIN_PASSWORD=adminpass
+WP_ADMIN_PASSWORD=$WP_ADMIN_PASSWORD
 WP_ADMIN_EMAIL=admin@example.com
 
 # 🔐 Security Note: Change these passwords to strong, unique values!

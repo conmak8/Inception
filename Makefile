@@ -15,7 +15,7 @@ init:
 	else \
 		echo "🔧 Running setup script (first-time initialization)..."; \
 		if [ -x ./startScript/setup_advanced.sh ]; then \
-			./startScript/setup_advanced.sh && touch .setup_done && echo '✅ Setup script completed!'; \
+			sudo ./startScript/setup_advanced.sh && touch .setup_done && echo '✅ Setup script completed!'; \
 		else \
 			echo '⚠️  setup_advanced.sh not found or not executable!'; \
 		fi \
@@ -98,7 +98,7 @@ hosts:
 # simple implementation
 # setup_dirs:
 # 	@echo "📂 Creating persistent data folders if needed..."
-# 	@mkdir -p $${HOME}/data/mariadb $${HOME}/data/wordpress
+# 	@sudo mkdir -p $${HOME}/data/mariadb $${HOME}/data/wordpress
 
 # all: setup_dirs init
 # 	@echo "🚀 Starting Docker Compose build..."
