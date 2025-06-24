@@ -1,0 +1,29 @@
+# # Ignore compiled containers
+# srcs/requirements/**/node_modules/
+# srcs/requirements/**/__pycache__/
+# srcs/requirements/**/.venv/
+# srcs/requirements/**/.envrc
+
+# # Ignore local data volumes
+# data/
+# *.log
+
+# # Ignore secret files
+# *secrets*
+# # !secrets/.gitkeep   # Allow folder to exist, if needed
+
+# # Optional: ignore IDE/editor noise
+# .vscode/
+# .idea/
+# *.swp
+
+# #.env
+# *.env
+# # *test*
+
+# # Ignore pushing certificate
+# srcs/requirements/nginx/conf/*.key
+# srcs/requirements/nginx/conf/*.crt
+# srcs/conf/
+# *setup*
+# *.md
