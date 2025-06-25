@@ -9,8 +9,8 @@ RUN apt-get update && \
 WORKDIR /usr/local/bin
 
 # Copy your custom entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY mariadb_entrypoint.sh /usr/local/bin/mariadb_entrypoint.sh
+RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
 
 # 🐳 Tell Docker this script is the entrypoint!
 ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
