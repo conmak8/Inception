@@ -14,3 +14,10 @@ RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
 
 # 🐳 Tell Docker this script is the entrypoint!
 ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
+
+# Test that is running
+# --------------------------------------------
+# docker compose build mariadb
+# docker compose up mariadb
+# docker logs mariadb
+# docker exec -it mariadb mysql -u wp_user -p
