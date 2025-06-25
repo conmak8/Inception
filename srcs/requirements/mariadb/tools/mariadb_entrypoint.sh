@@ -48,7 +48,9 @@ if [ ! -d "/var/lib/mysql/mysql" ]; then
     mysql -u root <<-EOSQL
         ALTER USER 'root'@'localhost' IDENTIFIED BY '$WP_DB_ROOT_PASSWORD';
         CREATE DATABASE IF NOT EXISTS \`$WP_DB_NAME\`;
+		CREATE USER IF NOT EXISTS '$WP_DB_USER'@'localhost' IDENTIFIED BY '$WP_DB_PASSWORD';
         CREATE USER IF NOT EXISTS '$WP_DB_USER'@'%' IDENTIFIED BY '$WP_DB_PASSWORD';
+		GRANT ALL PRIVILEGES ON \`$WP_DB_NAME\`.* TO '$WP_DB_USER'@'localhost';
         GRANT ALL PRIVILEGES ON \`$WP_DB_NAME\`.* TO '$WP_DB_USER'@'%';
         FLUSH PRIVILEGES;
 EOSQL
