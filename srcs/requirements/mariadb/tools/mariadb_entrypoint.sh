@@ -40,10 +40,10 @@ INIT_MARKER="/var/lib/mysql/.db-initialized"
 # 📦 If the DB is not initialized, run the setup
 if [ ! -f "/var/lib/mysql/.db-initialized" ]; then
     echo "📦 First boot: initializing database..."
-    mysqld --initialize-insecure --user=mysql --datadir=/var/lib/mysql
+     mysql_install_db --user=mysql --datadir=/var/lib/mysql --rpm
 
     # Start MariaDB in the background for setup
-    mysqld_safe --datadir=/var/lib/mysql &
+    mysqld_safe --datadir=/var/lib/mysql --user=mysql &
     sleep 5
 
     # Create DB and user
