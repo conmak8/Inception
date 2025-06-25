@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting MariaDB initialization "
+echo "Starting MariaDB initialization 🚀"
 
 # 🔑 Load secrets from Docker secrets (file mounts)
 if [ -f /run/secrets/db_password ]; then
@@ -18,7 +18,7 @@ else
     exit 1
 fi
 
-# Environment variables
+# Environment variables validation
 if [ -z "$WP_DB_NAME" ]; then
   echo "❌ Error: WP_DB_NAME is not set!"
   exit 1
@@ -27,9 +27,6 @@ if [ -z "$WP_DB_USER" ]; then
   echo "❌ Error: WP_DB_USER is not set!"
   exit 1
 fi
-# v.2
-# : "${WP_DB_NAME?Missing WP_DB_NAME}"
-# : "${WP_DB_USER?Missing WP_DB_USER}"
 
 echo "📋 Configuration:"
 echo "  Database: $WP_DB_NAME"
@@ -38,28 +35,55 @@ echo "  User:     $WP_DB_USER"
 # 📦 If the DB is not initialized, run the setup
 if [ ! -d "/var/lib/mysql/mysql" ]; then
     echo "📦 First boot: initializing database..."
-    mysqld --initialize-insecure --user=mysql --datadir=/var/lib/mysql
-
+    
+    # 🔧 FIXED: Use MariaDB's initialization method
+    mysql_install_db --user=mysql --datadir=/var/lib/mysql --rpm --auth-root-authentication-method=normal
+    
     # Start MariaDB in the background for setup
-    mysqld_safe --datadir=/var/lib/mysql &
-    sleep 5
-
+    mysqld_safe --datadir=/var/lib/mysql --user=mysql &
+    
+    # 🕐 Wait for MariaDB to be ready (more robust waiting)
+    echo "⏳ Waiting for MariaDB to start..."
+    for i in {30..0}; do
+        if mysqladmin ping --silent; then
+            break
+        fi
+        echo "⏳ MariaDB is unavailable - sleeping ($i seconds remaining)"
+        sleep 1
+    done
+    
+    if [ "$i" = 0 ]; then
+        echo "❌ MariaDB startup timeout!"
+        exit 1
+    fi
+    
+    echo "✅ MariaDB is ready!"
+    
     # Create DB and user
     mysql -u root <<-EOSQL
+        SET @@SESSION.SQL_LOG_BIN=0;
         ALTER USER 'root'@'localhost' IDENTIFIED BY '$WP_DB_ROOT_PASSWORD';
-        CREATE DATABASE IF NOT EXISTS \`$WP_DB_NAME\`;
-		CREATE USER IF NOT EXISTS '$WP_DB_USER'@'localhost' IDENTIFIED BY '$WP_DB_PASSWORD';
+        
+        CREATE DATABASE IF NOT EXISTS \`$WP_DB_NAME\` CHARACTER SET utf8 COLLATE utf8_general_ci;
+        
+        CREATE USER IF NOT EXISTS '$WP_DB_USER'@'localhost' IDENTIFIED BY '$WP_DB_PASSWORD';
         CREATE USER IF NOT EXISTS '$WP_DB_USER'@'%' IDENTIFIED BY '$WP_DB_PASSWORD';
-		GRANT ALL PRIVILEGES ON \`$WP_DB_NAME\`.* TO '$WP_DB_USER'@'localhost';
+        
+        GRANT ALL PRIVILEGES ON \`$WP_DB_NAME\`.* TO '$WP_DB_USER'@'localhost';
         GRANT ALL PRIVILEGES ON \`$WP_DB_NAME\`.* TO '$WP_DB_USER'@'%';
+        
         FLUSH PRIVILEGES;
 EOSQL
 
-    # Shutdown background MariaDB
+    # Shutdown background MariaDB gracefully
+    echo "🛑 Shutting down temporary MariaDB instance..."
     mysqladmin -uroot -p"$WP_DB_ROOT_PASSWORD" shutdown
-    echo "✅ Database initialized."
+    
+    echo "✅ Database initialized successfully!"
+else
+    echo "📂 Database already exists, skipping initialization"
 fi
 
-# Start MariaDB in foreground (as PID 1)
-echo "Starting MariaDB server..."
-exec mysqld_safe --datadir=/var/lib/mysql
+# 🚀 Start MariaDB in foreground (as PID 1)
+echo "🌟 Starting MariaDB server in foreground..."
+exec mysqld_safe --datadir=/var/lib/mysql --user=mysql
