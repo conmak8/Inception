@@ -18,7 +18,7 @@ fix_perms:
 
 # 🔐 SSL certificate auto-generation
 ssl:
-	@if [ ! -f requirements/nginx/ssl/cmakario.42.de.crt ]; then \
+	@if [ ! -f requirements/nginx/tools/ssl/cmakario.42.de.crt ]; then \
 		echo "🔐 Generating self-signed SSL cert for NGINX..."; \
 		mkdir -p requirements/nginx/tools/ssl; \
 		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
