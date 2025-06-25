@@ -21,9 +21,9 @@ ssl:
 	@if [ ! -f srcs/requirements/nginx/tools/ssl/cmakario.42.de.crt ]; then \
 		echo "🔐 Generating self-signed SSL cert for NGINX..."; \
 		mkdir -p srcs/requirements/nginx/tools/ssl/cert; \
-		mkdir -p srcs/requirements/nginx/tools/ssl/key; \
+		mkdir -p srcs/requirements/nginx/tools/ssl/private; \
 		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-			-keyout srcs/requirements/nginx/tools/ssl/key/cmakario.42.de.key \
+			-keyout srcs/requirements/nginx/tools/ssl/private/cmakario.42.de.key \
 			-out srcs/requirements/nginx/tools/ssl/cert/cmakario.42.de.crt \
 			-subj "/C=DE/ST=Baden-Wuerttemberg/L=Heilbronn/O=42/OU=student/CN=cmakario.42.de"; \
 		echo "✅ SSL certificate created!"; \
