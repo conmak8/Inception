@@ -35,6 +35,8 @@ echo "📋 Configuration:"
 echo "  Database: $WP_DB_NAME"
 echo "  User:     $WP_DB_USER"
 
+INIT_MARKER="/var/lib/mysql/.db-initialized"
+
 # 📦 If the DB is not initialized, run the setup
 if [ ! -d "/var/lib/mysql/mysql" ]; then
     echo "📦 First boot: initializing database..."
@@ -58,6 +60,7 @@ EOSQL
 
     # Shutdown background MariaDB
     mysqladmin -uroot -p"$WP_DB_ROOT_PASSWORD" shutdown
+	touch "$INIT_MARKER"
     echo "✅ Database initialized."
 fi
 
