@@ -12,7 +12,7 @@ WORKDIR /usr/local/bin
 COPY tools/mariadb_entrypoint.sh /usr/local/bin/mariadb_entrypoint.sh
 RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
 
-# 🐳 Tell Docker this script is the entrypoint!
+
 ENTRYPOINT ["/usr/local/bin/mariadb_entrypoint.sh"]
 
 # Test that is running

@@ -38,7 +38,7 @@ echo "  User:     $WP_DB_USER"
 INIT_MARKER="/var/lib/mysql/.db-initialized"
 
 # 📦 If the DB is not initialized, run the setup
-if [ ! -d "/var/lib/mysql/mysql" ]; then
+if [ ! -f "/var/lib/mysql/.db-initialized" ]; then
     echo "📦 First boot: initializing database..."
     mysqld --initialize-insecure --user=mysql --datadir=/var/lib/mysql
 
