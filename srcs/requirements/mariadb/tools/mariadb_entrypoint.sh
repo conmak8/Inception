@@ -41,7 +41,13 @@ if [ ! -f "/var/lib/mysql/.db-initialized" ]; then
 
     # Start MariaDB in the background for setup
     mysqld_safe --datadir=/var/lib/mysql --user=mysql &
-    sleep 5
+    MYSQL_PID=$!
+    
+    # Wait for MySQL to actually be ready
+    while ! mysqladmin ping --silent; do
+        echo "Waiting for MySQL to start..."
+        sleep 1
+    done
 
     # Create DB and user
 mysql -u root <<-EOSQL
