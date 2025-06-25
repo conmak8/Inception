@@ -8,9 +8,6 @@ RUN apt-get update && \
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY tools/ssl/ /etc/ssl/
 
-# For debugging (optional)
-RUN nginx -t
-
 CMD ["nginx", "-g", "daemon off;"]
 
 EXPOSE 443
