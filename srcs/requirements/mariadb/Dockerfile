@@ -13,6 +13,9 @@ RUN mkdir -p /var/lib/mysql && \
 # Set up the working directory 
 WORKDIR /usr/local/bin
 
+# 📁 Copy custom config
+COPY conf/my.cnf /etc/mysql/my.cnf
+
 # Copy your custom entrypoint script
 COPY tools/mariadb_entrypoint.sh /usr/local/bin/mariadb_entrypoint.sh
 RUN chmod +x /usr/local/bin/mariadb_entrypoint.sh
