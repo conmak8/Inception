@@ -88,12 +88,12 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/mak/data/wordpress
+      device: /home/cmakario/data/wordpress
       o: bind
 
   mariadb_data:
     driver: local
     driver_opts:
       type: none
-      device: /home/mak/data/mariadb
+      device: /home/cmakario/data/mariadb
       o: bind
