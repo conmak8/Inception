@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+if [ -f /run/secrets/db_password ]; then
+    WORDPRESS_DB_PASSWORD=$(cat /run/secrets/db_password)
+else
+    echo "❌ db_password secret not found!"
+    exit 1
+fi
+
 # Wait for MariaDB 
 echo "📡 Pinging ${WORDPRESS_DB_HOST}..."
 until mysqladmin ping -h"${WORDPRESS_DB_HOST}" --protocol=tcp --silent; do

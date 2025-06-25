@@ -2,7 +2,7 @@ FROM debian:11
 
 # Install PHP, extensions, and dependencies
 RUN apt-get update && \
-    apt-get install -y php php-fpm php-mysql curl less unzip wget tar && \
+    apt-get install -y php php-fpm php-mysql curl less unzip wget tar mariadb-client && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install WP-CLI
