@@ -18,7 +18,7 @@ fix_perms:
 
 # 🔐 SSL certificate auto-generation
 ssl:
-	@if [ ! -f srcs/requirements/nginx/tools/ssl/cmakario.42.de.crt ]; then \
+	@if [ ! -f srcs/requirements/nginx/tools/ssl/cert/cmakario.42.de.crt ]; then \
 		echo "🔐 Generating self-signed SSL cert for NGINX..."; \
 		mkdir -p srcs/requirements/nginx/tools/ssl/cert; \
 		mkdir -p srcs/requirements/nginx/tools/ssl/private; \
@@ -51,7 +51,7 @@ prune:
 
 reset_data:
 	@echo "💥 Deleting ALL host data for MariaDB and WordPress! (Irreversible!)"
-	rm -rf $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
+	sudo rm -rf $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
 	@echo "📁 Recreating data directories..."
 	mkdir -p $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
 	sudo chown 999:999 $(DATA_DIR)/mariadb
