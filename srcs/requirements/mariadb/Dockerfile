@@ -14,9 +14,7 @@ RUN mkdir -p /var/lib/mysql && \
 WORKDIR /usr/local/bin
 
 # Copy custom config
-COPY conf/my.cnf /etc/mysql/my.cnf
-# Edit/Clear bind-address in 50-server.cnf
-RUN sed -i 's/^bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
 
 # Copy your custom entrypoint script
 COPY tools/mariadb_entrypoint.sh /usr/local/bin/mariadb_entrypoint.sh
