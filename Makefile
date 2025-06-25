@@ -16,8 +16,22 @@ fix_perms:
 	sudo chown -R 33:33 $(DATA_DIR)/wordpress
 	@echo "🔒 Permissions fixed."
 
+# 🔐 SSL certificate auto-generation
+ssl:
+	@if [ ! -f requirements/nginx/ssl/cmakario.42.de.crt ]; then \
+		echo "🔐 Generating self-signed SSL cert for NGINX..."; \
+		mkdir -p requirements/nginx/tools/ssl; \
+		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+			-keyout requirements/nginx/tools/ssl/cmakario.42.de.key \
+			-out requirements/nginx/tools/ssl/cmakario.42.de.crt \
+			-subj "/C=DE/ST=Baden-Wuerttemberg/L=Heilbronn/O=42/OU=student/CN=cmakario.42.de"; \
+		echo "✅ SSL certificate created!"; \
+	else \
+		echo "🔑 SSL certificate already exists, skipping..."; \
+	fi
+
 # 🏁 Build & start everything (depends on dirs & perms)
-all: setup_dirs fix_perms
+all: ssl setup_dirs fix_perms
 	@echo "🚀 Building and starting containers..."
 	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) up --build -d --remove-orphans
 
