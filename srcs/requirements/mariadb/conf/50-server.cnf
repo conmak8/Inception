@@ -1,24 +1,9 @@
-
-[server]
-
 [mysqld]
-user                    = mysql
-pid-file                = /run/mysqld/mysqld.pid
-basedir                 = /usr
-datadir                 = /var/lib/mysql
-tmpdir                  = /tmp
-lc-messages-dir         = /usr/share/mysql
-lc-messages             = en_US
-skip-external-locking
-bind-address            = 0.0.0.0
+bind-address = 0.0.0.0
+port = 3306
+datadir = /var/lib/mysql
+socket = /var/run/mysqld/mysqld.sock
+pid-file = /var/run/mysqld/mysqld.pid
 
-expire_logs_days        = 10
-
-character-set-server  = utf8mb4
-collation-server      = utf8mb4_general_ci
-
-[embedded]
-
-[mariadb]
-
-[mariadb-10.5]
+# Allow connections from any host
+skip-networking = false

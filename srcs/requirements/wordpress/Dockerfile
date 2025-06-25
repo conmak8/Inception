@@ -1,21 +1,37 @@
 FROM debian:11
 
-# Install PHP, extensions, and dependencies
+# Install PHP and dependencies
 RUN apt-get update && \
-    apt-get install -y php php-fpm php-mysql curl less unzip wget tar mariadb-client && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get install -y \
+    php7.4-fpm \
+    php7.4-mysql \
+    php7.4-curl \
+    php7.4-gd \
+    php7.4-xml \
+    php7.4-mbstring \
+    php7.4-zip \
+    curl \
+    mariadb-client && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install WP-CLI
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
-    chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp && \
-    wp --info
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp
 
-# Create a working directory
-RUN mkdir -p /var/www/html
+# Configure PHP-FPM
+COPY conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
+
+# Create directories
+RUN mkdir -p /var/www/html && \
+    chown -R www-data:www-data /var/www/html
+
+# Copy initialization script
+COPY tools/init_wp.sh /usr/local/bin/init_wp.sh
+RUN chmod +x /usr/local/bin/init_wp.sh
+
 WORKDIR /var/www/html
 
-# Copy custom entrypoint
-COPY tools/wp_entrypoint.sh /usr/local/bin/wp_entrypoint.sh
-RUN chmod +x /usr/local/bin/wp_entrypoint.sh
+EXPOSE 9000
 
-ENTRYPOINT ["/usr/local/bin/wp_entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/init_wp.sh"]

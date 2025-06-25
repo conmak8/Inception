@@ -1,62 +1,65 @@
-# 📦 Inception Project Makefile
-
 NAME = inception
-COMPOSE = docker compose
-SRC_DIR = srcs
+COMPOSE_FILE = srcs/docker-compose.yml
 DATA_DIR = $(HOME)/data
 
-# 📂 Ensure persistent data folders (MariaDB & WordPress) exist and have proper permissions
+.PHONY: all build up down clean fclean re ssl setup_dirs
+
+# Create necessary directories
 setup_dirs:
-	mkdir -p $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
-	@echo "✅ Data directories ready."
+	@echo "📁 Creating data directories..."
+	@mkdir -p $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
+	@sudo chown -R 999:999 $(DATA_DIR)/mariadb
+	@sudo chown -R 33:33 $(DATA_DIR)/wordpress
+	@echo "✅ Directories ready!"
 
-# 🔑 Fix permissions for MariaDB and WordPress (999 is mysql, 33 is www-data)
-fix_perms:
-	sudo chown -R 999:999 $(DATA_DIR)/mariadb
-	sudo chown -R 33:33 $(DATA_DIR)/wordpress
-	@echo "🔒 Permissions fixed."
-
-# 🔐 SSL certificate auto-generation
+# Generate SSL certificates
 ssl:
-	@if [ ! -f srcs/requirements/nginx/tools/ssl/cert/cmakario.42.de.crt ]; then \
-		echo "🔐 Generating self-signed SSL cert for NGINX..."; \
-		mkdir -p srcs/requirements/nginx/tools/ssl/cert; \
-		mkdir -p srcs/requirements/nginx/tools/ssl/private; \
-		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-			-keyout srcs/requirements/nginx/tools/ssl/private/cmakario.42.de.key \
-			-out srcs/requirements/nginx/tools/ssl/cert/cmakario.42.de.crt \
-			-subj "/C=DE/ST=Baden-Wuerttemberg/L=Heilbronn/O=42/OU=student/CN=cmakario.42.de"; \
-		echo "✅ SSL certificate created!"; \
-	else \
-		echo "🔑 SSL certificate already exists, skipping..."; \
-	fi
+	@echo "🔐 Generating SSL certificates..."
+	@mkdir -p srcs/requirements/nginx/tools/ssl/cert
+	@mkdir -p srcs/requirements/nginx/tools/ssl/private
+	@openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+		-keyout srcs/requirements/nginx/tools/ssl/private/cmakario.42.de.key \
+		-out srcs/requirements/nginx/tools/ssl/cert/cmakario.42.de.crt \
+		-subj "/C=DE/ST=Baden-Wuerttemberg/L=Heilbronn/O=42/OU=student/CN=cmakario.42.de"
+	@echo "✅ SSL certificates generated!"
 
-# 🏁 Build & start everything (depends on dirs & perms)
-all: ssl setup_dirs fix_perms
-	@echo "🚀 Building and starting containers..."
-	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) up --build -d --remove-orphans
+# Build all services
+build: setup_dirs ssl
+	@echo "🔨 Building services..."
+	@docker compose -f $(COMPOSE_FILE) build
 
-# 🧹 Stop and remove everything
-clean:
-	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) down
+# Start all services
+up: build
+	@echo "🚀 Starting services..."
+	@docker compose -f $(COMPOSE_FILE) up -d
 
-# 💣 Remove everything including volumes
-fclean:
-	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) down -v
+# Stop services
+down:
+	@echo "⏹️ Stopping services..."
+	@docker compose -f $(COMPOSE_FILE) down
 
-prune:
-	@echo "🧹 Pruning all unused Docker stuff (images, stopped containers, networks, build cache)..."
+# Clean containers and networks
+clean: down
+	@echo "🧹 Cleaning up..."
+	@docker compose -f $(COMPOSE_FILE) down -v --remove-orphans
+	@docker system prune -f
+
+# Full cleanup including data
+fclean: clean
+	@echo "💥 Full cleanup..."
+	@sudo rm -rf $(DATA_DIR)
 	@docker system prune -af --volumes
-	@echo "✅ Docker system pruned!"
 
-reset_data:
-	@echo "💥 Deleting ALL host data for MariaDB and WordPress! (Irreversible!)"
-	sudo rm -rf $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
-	@echo "📁 Recreating data directories..."
-	mkdir -p $(DATA_DIR)/mariadb $(DATA_DIR)/wordpress
-	sudo chown 999:999 $(DATA_DIR)/mariadb
-	sudo chown 33:33 $(DATA_DIR)/wordpress
-	@echo "✅ Host data wiped and folders ready!"
-
-# 🔁 Full rebuild
+# Rebuild everything
 re: fclean all
+
+# Default target
+all: up
+
+# Show logs
+logs:
+	@docker compose -f $(COMPOSE_FILE) logs -f
+
+# Check status
+status:
+	@docker compose -f $(COMPOSE_FILE) ps
