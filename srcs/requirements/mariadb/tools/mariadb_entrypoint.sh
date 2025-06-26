@@ -6,13 +6,16 @@ echo "Starting MariaDB initialization "
 WP_DB_PASSWORD=$(cat /run/secrets/db_password)
 WP_DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
-sevice mariadb start
+# 1. Start MariaDB in background for setup
+mysqld_safe --datadir=/var/lib/mysql --user=mysql &
+MYSQL_PID=$!
 
-until mariadb-admin ping --silent; do
+# 2. Wait for MariaDB to be ready
+until mysqladmin ping --silent; do
     sleep 1
 done
 
-    # Create DB and user
+# 3. Create DB and user
 mysql -u root <<-EOSQL
 
     CREATE DATABASE IF NOT EXISTS \`${WP_DB_NAME}\`;
@@ -21,7 +24,9 @@ mysql -u root <<-EOSQL
     FLUSH PRIVILEGES;
 EOSQL
 
+# 4. Shut down background MariaDB
+mysqladmin -uroot shutdown
 
-mysqladmin shutdown --socket=/var/run/mysqld/mysqld.sock -u root
-
+# 5. Wait for background process to stop
+wait $MYSQL_PID
 exec mysqld
