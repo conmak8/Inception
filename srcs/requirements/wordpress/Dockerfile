@@ -1,21 +1,20 @@
-# Use Debian Bullseye as the base image
 FROM debian:bullseye
 
-# Update and install dependencies including PHP 7.4
 RUN apt-get update && apt-get install -y \
-    php7.4 \
     php7.4-fpm \
     php7.4-mysql \
-    curl
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install WordPress CLI
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
-    chmod +x wp-cli.phar && \
-    mv wp-cli.phar /usr/local/bin/wp
+RUN wget https://wordpress.org/latest.tar.gz \
+    && tar -xzf latest.tar.gz \
+    && cp -r wordpress/* /var/www/html/ \
+    && rm -rf wordpress latest.tar.gz
 
-# Copy the WordPress setup script
-COPY ./tools/setup_wp.sh /usr/local/bin/setup_wp.sh
-RUN chmod +x /usr/local/bin/setup_wp.sh
+COPY conf/www.conf /etc/php/7.4/fpm/pool.d/
+COPY tools/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Set the entrypoint to the setup script
-CMD ["/usr/local/bin/setup_wp.sh"]
+EXPOSE 9000
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php-fpm7.4", "-F"]

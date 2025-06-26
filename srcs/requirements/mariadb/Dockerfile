@@ -1,12 +1,13 @@
-# Use Debian Bullseye as the base image
 FROM debian:bullseye
 
-# Update and install MariaDB server
-RUN apt-get update && apt-get install -y mariadb-server
+RUN apt-get update && apt-get install -y \
+    mariadb-server \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the database initialization script
-COPY ./tools/initial_db.sh /usr/local/bin/initial_db.sh
-RUN chmod +x /usr/local/bin/initial_db.sh
+COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/
+COPY tools/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Set the entrypoint to the initialization script
-CMD ["/usr/local/bin/initial_db.sh"]
+EXPOSE 3306
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["mysqld"]
