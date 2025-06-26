@@ -37,7 +37,7 @@ INIT_MARKER="/var/lib/mysql/.db-initialized"
 # 📦 If the DB is not initialized, run the setup
 if [ ! -f "/var/lib/mysql/.db-initialized" ]; then
     echo "📦 First boot: initializing database..."
-     mysql_install_db --user=mysql --datadir=/var/lib/mysql --rpm
+    #  mysql_install_db --user=mysql --datadir=/var/lib/mysql --rpm
 
     # Start MariaDB in the background for setup
     mysqld_safe --datadir=/var/lib/mysql --user=mysql &
@@ -69,4 +69,4 @@ fi
 
 # 🚀 Start MariaDB in foreground (as PID 1)
 echo "🌟 Starting MariaDB server in foreground..."
-exec mysqld_safe --datadir=/var/lib/mysql --user=mysql
+exec mysqld --datadir=/var/lib/mysql --user=mysql

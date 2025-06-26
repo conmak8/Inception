@@ -7,15 +7,16 @@ RUN apt-get update && \
 
 # Install WP-CLI
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
-    chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp && \
-    wp --info
+    chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp
 
-# Create a working directory
+# Create working directory for WordPress files
 RUN mkdir -p /var/www/html
 WORKDIR /var/www/html
 
-# Copy custom entrypoint
+# Copy custom entrypoint script
 COPY tools/wp_entrypoint.sh /usr/local/bin/wp_entrypoint.sh
 RUN chmod +x /usr/local/bin/wp_entrypoint.sh
+
+EXPOSE 9000
 
 ENTRYPOINT ["/usr/local/bin/wp_entrypoint.sh"]
