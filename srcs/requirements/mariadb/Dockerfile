@@ -1,22 +1,12 @@
-FROM debian:11
+# Use Debian Bullseye as the base image
+FROM debian:bullseye
 
-# Install MariaDB
-RUN apt-get update && \
-    apt-get install -y mariadb-server && \
-    rm -rf /var/lib/apt/lists/*
+# Update and install MariaDB server
+RUN apt-get update && apt-get install -y mariadb-server
 
-# Copy configuration
-COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+# Copy the database initialization script
+COPY ./tools/initial_db.sh /usr/local/bin/initial_db.sh
+RUN chmod +x /usr/local/bin/initial_db.sh
 
-# Copy initialization script
-COPY tools/init_db.sh /usr/local/bin/init_db.sh
-RUN chmod +x /usr/local/bin/init_db.sh
-
-# Create mysql directories with proper permissions
-RUN mkdir -p /var/run/mysqld && \
-    chown -R mysql:mysql /var/run/mysqld && \
-    chown -R mysql:mysql /var/lib/mysql
-
-EXPOSE 3306
-
-ENTRYPOINT ["/usr/local/bin/init_db.sh"]
+# Set the entrypoint to the initialization script
+CMD ["/usr/local/bin/initial_db.sh"]
