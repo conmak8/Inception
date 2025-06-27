@@ -36,6 +36,10 @@ all: ssl setup_dirs fix_perms
 	@echo "🚀 Building and starting containers..."
 	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) up --build -d --remove-orphans
 
+start:
+	@echo "▶️ Starting all containers (detached)..."
+	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) up -d
+
 # 🧹 Stop and remove everything
 clean:
 	@$(COMPOSE) -f $(SRC_DIR)/docker-compose.yml -p $(NAME) down
