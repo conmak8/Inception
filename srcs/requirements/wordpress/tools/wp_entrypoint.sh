@@ -8,6 +8,20 @@ else
     exit 1
 fi
 
+if [ -f /run/secrets/wp_admin_password ]; then
+    WP_ADMIN_PASSWORD=$(cat /run/secrets/db_password)
+else
+    echo "❌ db_password secret not found!"
+    exit 1
+fi
+
+if [ -f /run/secrets/wp_user_password ]; then
+    WP_USER_PASSWORD=$(cat /run/secrets/db_password)
+else
+    echo "❌ db_password secret not found!"
+    exit 1
+fi
+
 # Wait for MariaDB 
 echo "📡 Pinging ${WORDPRESS_DB_HOST}..."
 until mysqladmin ping -h"${WORDPRESS_DB_HOST}" --protocol=tcp --silent; do
@@ -33,6 +47,11 @@ if [ ! -f /var/www/html/wp-config.php ]; then
     --admin_user="${WP_ADMIN_USER}" \
     --admin_password="${WP_ADMIN_PASSWORD}" \
     --admin_email="${WP_ADMIN_EMAIL}"
+
+  wp user create --allow-root \
+    ${WP_USER_USER} ${WP_USER_EMAIL} \
+    --user_pass=${WP_USER_PASSWORD} \
+    --role=${WORDPRESS_USER_ROLE}
 
   echo "✅ WordPress installed!"
 else
