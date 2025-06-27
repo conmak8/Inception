@@ -6,6 +6,12 @@ echo "Starting MariaDB initialization "
 WP_DB_PASSWORD=$(cat /run/secrets/db_password)
 WP_DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
 
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+    echo "Initializing MariaDB data directory..."
+    mariadb-install-db --user=mysql --datadir=/var/lib/mysql
+fi
+chown -R mysql:mysql /var/lib/mysql
+
 # 1. Start MariaDB in background for setup
 mysqld_safe --datadir=/var/lib/mysql --user=mysql &
 MYSQL_PID=$!
