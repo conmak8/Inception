@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# as to my PHP-FPM listens on TCP port 9000 (not a UNIX socket).
+# before my container’s /etc/php/7.4/fpm/pool.d/www.conf said:
+#listen = /run/php/php7.4-fpm.sock
+#but Nginx is trying to connect to wordpress:9000, it will fail with a 502.
+sed -i 's|listen = .*|listen = 9000|' /etc/php/7.4/fpm/pool.d/www.conf
+
+
 if [ -f /run/secrets/db_password ]; then
     WORDPRESS_DB_PASSWORD=$(cat /run/secrets/db_password)
 else
