@@ -58,5 +58,7 @@ else
   echo "🔁 WordPress already configured, skipping install."
 fi
 
+mkdir -p /run/php
+
 # Start PHP-FPM in the foreground
 php-fpm7.4 -F
