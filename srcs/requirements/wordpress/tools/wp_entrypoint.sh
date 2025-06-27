@@ -9,14 +9,14 @@ else
 fi
 
 if [ -f /run/secrets/wp_admin_password ]; then
-    WP_ADMIN_PASSWORD=$(cat /run/secrets/db_password)
+    WP_ADMIN_PASSWORD=$(cat /run/secrets/wp_admin_password)
 else
     echo "❌ db_password secret not found!"
     exit 1
 fi
 
 if [ -f /run/secrets/wp_user_password ]; then
-    WP_USER_PASSWORD=$(cat /run/secrets/db_password)
+    WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 else
     echo "❌ db_password secret not found!"
     exit 1
