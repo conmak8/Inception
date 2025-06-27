@@ -51,7 +51,7 @@ if [ ! -f /var/www/html/wp-config.php ]; then
   wp user create --allow-root \
     ${WP_USER_USER} ${WP_USER_EMAIL} \
     --user_pass=${WP_USER_PASSWORD} \
-    --role=${WORDPRESS_USER_ROLE}
+    --role=${WP_USER_ROLE}
 
   echo "✅ WordPress installed!"
 else
